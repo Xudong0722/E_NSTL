@@ -61,9 +61,135 @@ struct pair{
     constexpr pair()
     : first()
     , second()
+    {}
+
+    //TODO why implicit and explicit?
+
+    //implicit constructible for this type
+    template<class U1 = T1, class U2 = T2,
+    typanme std::enable_if<
+    std::is_copy_constructible<U1>::value &&
+    std::is_copy_constructible<U2>::value &&
+    std::is_convertible<const U1&, T1>::value &&
+    std::is_convertible<const U2&, T2>::value), int>::type = 0>
+    constexpr pair(const T1& a, const T2& b)
+    : first(a)
+    , second(b)
+    {}
+
+    //explicit constructible for this type
+    template<class U1 = T1, class U2 = T2,
+    typename std::enable_if<
+    std::is_copy_constructible<U1>::value &&
+    std::is_copy_constructible<U2>::value &&
+    (!std::is_convertible<const U1&, T1>::value ||
+    !std::is_convertible<const U2& T2>::value), int>::type = 0>
+    explicit constexpr pair(const T1& a, const T2& b)
+    : first(a)
+    , second(b)
+    {}
+
+
+    //implicit constructible for other type
+    template<class Other1, class Other2,
+    typename std::enable_if<
+    std::is_constructible<T1, Other1>::value &&
+    std::is_constructible<T2, Other2>::value &&
+    std::is_convertible<Other1&&, T1>::value &&
+    std::is_convertible<Other2&&, T2>::value, int>::type = 0>
+    constexpr pair(Other1&& a, Other2&& b)
+    : first(ENSTL::forward<Other1>(a))
+    , second(ENSTL::forward<Other2>(b))
+    {}
+
+    //explicit constructible for other type
+    template<class Other1, class Other2,
+    typename std::enable_if<
+    std::is_constructible<T1, Other1>::value &&
+    std::is_constructible<T2, Other2>::value &&
+    !(std::is_convertible<Other1, T1>::value &&
+    std::is_convertible<Other2, T2>::value), int>::type = 0>
+    explicit constexpr pair(Other1&& a, Other2&& b)
+    : first(ENSTL::forward<Other1>(a))
+    , second(ENSTL::forward<Other2>(b))
+    {}
+
+    //implicit constructible for other pair
+    tempalte<class Other1, class Other2,
+    typename std::enable_if<
+    std::is_constructible<T1, const Other1&>::value &&
+    std::is_constructible<T2, const Other2&>::value &&
+    std::is_convertible<const Other1&, T1>::value &&
+    std::is_convertible<const Other2&, T2>::value, int>::type = 0>
+    constexpr pair(const pair<Other1, Other2>& other)
+    : first(other.first)
+    , second(other.second)
+    {}
+
+    //explicit constructible for other pair
+    tempalte<class Other1, class Other2,
+    typename std::enable_if<
+    std::is_constructible<T1, const Other1&>::value &&
+    std::is_constructible<T2, const Other2&>::value &&
+    !(std::is_convertible<const Other1&, T1>::value &&
+    std::is_convertible<const Other2&, T2>::value, int>::type = 0>
+    explicit constexpr pair(const pair<Other1, Other2>& other)
+    : first(other.first)
+    , second(other.second)
+    {}
+
+    //TODO copy constructor and move constructor
+    //copy assign for this pair
+    pair& operator=(const pair& rhs)
     {
+        if(this != &rhs)
+        {
+            first = rhs.first;
+            second = rhs.second;
+        }
+        return *this;
     }
-}
+
+    //move assign for this pair
+    pair& operator=(pair&& rhs)
+    {
+        if(this != &rhs)
+        {
+            first = ENSTL::move(rhs.first);
+            second = ENSTL::move(rhs.second);
+        }
+        return *this;
+    }
+
+    //copy assign for other pair
+    template<class Other1, class Other2>
+    pair& operator=(const pair<Other1, Other2>& rhs)
+    {
+        first = rhs.first;
+        second = rhs.second;
+        return *this;
+    }
+
+    //move assign for other pair
+    tempalte<class Other1, class Other2>
+    pair& operator=(pair<Other1, Other2>&& rhs)
+    {
+        first = ENSTL::forward<Other1>(rhs.first);
+        second = ENSTL::forward<Other2>(rhs.second);
+        return *this;
+    }
+
+    ~pair = default;
+
+    void swap(pair& other)
+    {
+        if(this != &other)
+        {
+            ENSTL::swap(first, other.first);
+            ENSTL::swap(second, other.second);
+        }
+    }
+};
 
 
 ENSTL_END
