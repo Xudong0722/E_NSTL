@@ -53,6 +53,9 @@ struct pair{
     first_type first;
     second_type second;
 
+    pair(const pair&) = default;
+    pair(pair&&) = default;
+    
     //default constructor
     template<class Other1 = T1, class Other2 = T2,
     typename = typename std::enable_if<
@@ -138,7 +141,6 @@ struct pair{
     , second(other.second)
     {}
 
-    //TODO copy constructor and move constructor
     //copy assign for this pair
     pair& operator=(const pair& rhs)
     {
